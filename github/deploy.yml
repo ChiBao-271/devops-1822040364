@@ -1,0 +1,52 @@
+name: Deploy Website Phạm La Chí Bảo
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lay code tu repository
+        uses: actions/checkout@v4
+      
+      - name: Kiem tra du 3 file
+        run: |
+          if [ ! -f "index.html" ] || [ ! -f "style.css" ] || [ ! -f "script.js" ]; then
+            echo "Loi: Thieu 1 trong 3 file (index.html, style.css, script.js)!"
+            exit 1
+          fi
+          echo "Da du 3 file."
+
+      - name: Kiem tra the title trong index.html
+        run: |
+          if ! grep -qi "<title>" index.html; then
+            echo "Loi: File index.html khong chua the <title>!"
+            exit 1
+          fi
+          echo "Thẻ <title> hop le."
+
+  deploy:
+    needs: check
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Lay code
+        uses: actions/checkout@v4
+      - name: Cai dat Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - name: Deploy len GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
